@@ -1,5 +1,6 @@
 ﻿using CryptoAPI.DTO;
 using CryptoAPI.Interfaces;
+using CryptoAPI.Services;
 using Microsoft.AspNetCore.Mvc;
 
 namespace CryptoAPI.Controllers
@@ -9,10 +10,12 @@ namespace CryptoAPI.Controllers
     public class CryptoCurrencyController : ControllerBase
     {
         private readonly ICryptoCurrencyService _cryptoService;
+        private readonly ILogger<CryptoCurrencyController> _logger;
 
-        public CryptoCurrencyController(ICryptoCurrencyService cryptoService)
+        public CryptoCurrencyController(ICryptoCurrencyService cryptoService, ILogger<CryptoCurrencyController> logger)
         {
             _cryptoService = cryptoService;
+            _logger = logger;
         }
 
         /// <summary>
@@ -35,12 +38,23 @@ namespace CryptoAPI.Controllers
         {
             try
             {
-                var result = await _cryptoService.GetCryptoCurrencies(search, param);
+                var currencies = await _cryptoService.GetCryptoCurrencies(search, param);
 
-                return Ok(result);
+                // Check if currencies is null
+                if (currencies == null)
+                {
+                    return StatusCode(500, "Internal Server Error");
+                }
+
+                // Return the appropriate HTTP status code based on the service response
+
+                return currencies.Data != null && currencies.Data.Any()
+                    ? Ok(currencies)   // 200 OK with currencies if there are data
+                    : NoContent();     // 204 No Content
             }
             catch (Exception ex)
             {
+                _logger.LogError("coin app api service is down");
                 return StatusCode(500, new { error = $"Internal server error: {ex.Message}" });
             }
          

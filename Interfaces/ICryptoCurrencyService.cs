@@ -1,5 +1,5 @@
 ﻿using CryptoAPI.DTO;
-using static CryptoAPI.Interfaces.ICoinCap;
+using Microsoft.AspNetCore.Mvc;
 
 namespace CryptoAPI.Interfaces
 {
